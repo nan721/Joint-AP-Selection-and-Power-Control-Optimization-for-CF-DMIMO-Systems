@@ -17,11 +17,11 @@ class Actor(nn.Module):
     def __init__(self, state_dim, action_dim, net_width):
         super(Actor, self).__init__()
 
-        self.l1 = nn.Linear(state_dim, 512)
+        self.l1 = nn.Linear(state_dim, 256)
 
-        self.pi_d = nn.Linear(512, action_dim)
-        self.mean = nn.Linear(512, 1)
-        self.logstd = nn.Linear(512, 1)
+        self.pi_d = nn.Linear(256, action_dim)
+        self.mean = nn.Linear(256, 1)
+        self.logstd = nn.Linear(256, 1)
     def forward(self, state):
         n = torch.relu(self.l1(state))
 
@@ -48,9 +48,9 @@ class Critic(nn.Module):
     def __init__(self, state_dim, net_width):
         super(Critic, self).__init__()
 
-        self.C1 = nn.Linear(state_dim, 512)
+        self.C1 = nn.Linear(state_dim, 256)
 
-        self.C2 = nn.Linear(512, 1)
+        self.C2 = nn.Linear(256, 1)
 
     def forward(self, state):
         v = torch.relu(self.C1(state))
