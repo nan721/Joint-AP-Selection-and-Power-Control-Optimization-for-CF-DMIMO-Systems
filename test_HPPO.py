@@ -490,15 +490,15 @@ def main():
 
         NetworkPPOth1 = Actorh(state_dim=73, action_dim=30, net_width=256)
         NetworkPPOth1.load_state_dict(
-            torch.load('./network/hppo9-4-4_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hppo9-4-4_network_60000.pth', map_location=torch.device(device)))
 
         NetworkPPOth34 = Actorh(state_dim=73, action_dim=30, net_width=256)
         NetworkPPOth34.load_state_dict(
-            torch.load('./network/hppo9-5-4_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hppo9-5-4_network_60000.pth', map_location=torch.device(device)))
 
         NetworkPPOth964 = Actorh(state_dim=73, action_dim=30, net_width=256)
         NetworkPPOth964.load_state_dict(
-            torch.load('./network/hppo9-6-4_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hppo9-6-4_network_60000.pth', map_location=torch.device(device)))
 
 
         for i in range(INDEX_NUMBER):
