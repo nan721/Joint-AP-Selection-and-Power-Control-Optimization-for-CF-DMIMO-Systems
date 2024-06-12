@@ -203,39 +203,29 @@ def main():
 
         NetworkhSAC256le5 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC256le5.load_state_dict(
-            torch.load('./network/hsacle3_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsacle3_network_60000.pth', map_location=torch.device(device)))
 
         NetworkhSAC256le6 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC256le6.load_state_dict(
-            torch.load('./network/hsacle4_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsacle4_network_60000.pth', map_location=torch.device(device)))
 
         NetworkhSAC256le7 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC256le7.load_state_dict(
-            torch.load('./network/hsacle5_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsacle5_network_60000.pth', map_location=torch.device(device)))
 
         NetworkhSAC512le5 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC512le5.load_state_dict(
-            torch.load('./network/hsacle6_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsacle6_network_60000.pth', map_location=torch.device(device)))
 
         NetworkhSAC512le6 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC512le6.load_state_dict(
-            torch.load('./network/hsacle7_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsacle7_network_60000.pth', map_location=torch.device(device)))
 
         NetworkhSAC512le7 = Policypower512(input_shape=73, out_c=1, out_d=30)
         NetworkhSAC512le7.load_state_dict(
-            torch.load('./network/hsac512-7_q_eval_60000.pth', map_location=torch.device(device)))
+            torch.load('./network/hsac512-7_network_60000.pth', map_location=torch.device(device)))
 
-        NetworkhSAC1024le5 = Policypower1024(input_shape=73, out_c=1, out_d=30)
-        NetworkhSAC1024le5.load_state_dict(
-            torch.load('./network/hsac1024-5_q_eval_60000.pth', map_location=torch.device(device)))
-
-        NetworkhSAC1024le6 = Policypower1024(input_shape=73, out_c=1, out_d=30)
-        NetworkhSAC1024le6.load_state_dict(
-            torch.load('./network/hsac1024-6_q_eval_60000.pth', map_location=torch.device(device)))
-
-        NetworkhSAC1024le7 = Policypower1024(input_shape=73, out_c=1, out_d=30)
-        NetworkhSAC1024le7.load_state_dict(
-            torch.load('./network/hsac1024-7_q_eval_60000.pth', map_location=torch.device(device)))
+       
 
         for i in range(INDEX_NUMBER):
             distance_matrix = get_distance_matrix(np.loadtxt('./compare_4.14/position/USER_matrix_{}.txt'.format(i)),
@@ -417,103 +407,11 @@ def main():
             print('hsac_sc', capacityhSAC512le7)
             print(hSAC512le7.power_matrix)
 
-            sele_index = np.zeros((1, 2))
-            R = np.zeros((1, 3))
-            action_c_single = 1
-            power_matrix = np.zeros((user, rrh))
-
-            power_10 = np.zeros((1, rrh))
-            hSAC1024le5 = Statepower(np.zeros((user, rrh)), distance_matrix, sele_index, R, power_matrix, power_10,
-                                    action_c_single)
-            for j in range(EP_STEPS):
-                hSAC1024le5.largescale_matrix = normsac(hSAC1024le5.largescale_matrix).reshape(1, user * rrh)
-                inputhSAC1024le5 = np.concatenate(
-                    (hSAC1024le5.selection_pairs.reshape(1, 30), hSAC1024le5.power_10.reshape(1, 10),
-                     hSAC1024le5.R.reshape(1, user), hSAC1024le5.largescale_matrix), axis=1)
-                inputhSAC1024le5 = inputhSAC1024le5.astype(float)
-                inputhSAC1024le5 = torch.from_numpy(inputhSAC1024le5).type(torch.FloatTensor).to(device)
-
-                mean, log_std, pi_d = NetworkhSAC1024le5(inputhSAC1024le5, device)
-                mean = mean.clamp(0, 1)
-                action_d = torch.argmax(pi_d).item()
-                action_c_single = mean.item()
-                hSAC1024le5.excute_static_action_with_service_number(action_d, action_c_single)
-
-                hSAC1024le5.R = hSAC1024le5.get_expect_capacity(CAPACITY_LOOP)
-            capacityhSAC1024le5 = hSAC1024le5.get_expect_capacity(CAPACITY_LOOP).sum()
-            SAC_memoryhSAC1024le5.update_capacity(capacityhSAC1024le5, i)
-            print('hsac_sc', capacityhSAC1024le5)
-            print(hSAC1024le5.power_matrix)
-
-            sele_index = np.zeros((1, 2))
-            R = np.zeros((1, 3))
-            action_c_single = 1
-            power_matrix = np.zeros((user, rrh))
-
-            power_10 = np.zeros((1, rrh))
-            hSAC1024le6 = Statepower(np.zeros((user, rrh)), distance_matrix, sele_index, R, power_matrix, power_10,
-                                     action_c_single)
-            for j in range(EP_STEPS):
-                hSAC1024le6.largescale_matrix = normsac(hSAC1024le5.largescale_matrix).reshape(1, user * rrh)
-                inputhSAC1024le6 = np.concatenate(
-                    (hSAC1024le6.selection_pairs.reshape(1, 30), hSAC1024le6.power_10.reshape(1, 10),
-                     hSAC1024le6.R.reshape(1, user), hSAC1024le6.largescale_matrix), axis=1)
-                inputhSAC1024le6 = inputhSAC1024le6.astype(float)
-                inputhSAC1024le6 = torch.from_numpy(inputhSAC1024le6).type(torch.FloatTensor).to(device)
-
-                mean, log_std, pi_d = NetworkhSAC1024le6(inputhSAC1024le6, device)
-                mean = mean.clamp(0, 1)
-                action_d = torch.argmax(pi_d).item()
-                action_c_single = mean.item()
-                hSAC1024le6.excute_static_action_with_service_number(action_d, action_c_single)
-
-                hSAC1024le6.R = hSAC1024le6.get_expect_capacity(CAPACITY_LOOP)
-            capacityhSAC1024le6 = hSAC1024le6.get_expect_capacity(CAPACITY_LOOP).sum()
-            SAC_memoryhSAC1024le6.update_capacity(capacityhSAC1024le6, i)
-            print('hsac_sc', capacityhSAC1024le6)
-            print(hSAC1024le6.power_matrix)
-
-            sele_index = np.zeros((1, 2))
-            R = np.zeros((1, 3))
-            action_c_single = 1
-            power_matrix = np.zeros((user, rrh))
-
-            power_10 = np.zeros((1, rrh))
-            hSAC1024le7 = Statepower(np.zeros((user, rrh)), distance_matrix, sele_index, R, power_matrix, power_10,
-                                     action_c_single)
-            for j in range(EP_STEPS):
-                hSAC1024le7.largescale_matrix = normsac(hSAC1024le7.largescale_matrix).reshape(1, user * rrh)
-                inputhSAC1024le7 = np.concatenate(
-                    (hSAC1024le7.selection_pairs.reshape(1, 30), hSAC1024le7.power_10.reshape(1, 10),
-                     hSAC1024le7.R.reshape(1, user), hSAC1024le7.largescale_matrix), axis=1)
-                inputhSAC1024le7 = inputhSAC1024le7.astype(float)
-                inputhSAC1024le7 = torch.from_numpy(inputhSAC1024le7).type(torch.FloatTensor).to(device)
-
-                mean, log_std, pi_d = NetworkhSAC1024le7(inputhSAC1024le7, device)
-                mean = mean.clamp(0, 1)
-                action_d = torch.argmax(pi_d).item()
-                action_c_single = mean.item()
-                hSAC1024le7.excute_static_action_with_service_number(action_d, action_c_single)
-
-                hSAC1024le7.R = hSAC1024le7.get_expect_capacity(CAPACITY_LOOP)
-            capacityhSAC1024le7 = hSAC1024le7.get_expect_capacity(CAPACITY_LOOP).sum()
-            SAC_memoryhSAC1024le7.update_capacity(capacityhSAC1024le7, i)
-            print('hsac_sc', capacityhSAC1024le7)
-            print(hSAC1024le7.power_matrix)
-
-
+           
 
         create_directory('./compare_4.14_data', sub_dirs=[''])
 
-        # SAC_memoryhSAC256le5 = method_memory()
-        # SAC_memoryhSAC256le6 = method_memory()
-        # SAC_memoryhSAC256le7 = method_memory()
-        # SAC_memoryhSAC512le5 = method_memory()
-        # SAC_memoryhSAC512le6 = method_memory()
-        # SAC_memoryhSAC512le7 = method_memory()
-        # SAC_memoryhSAC1024le5 = method_memory()
-        # SAC_memoryhSAC1024le6 = method_memory()
-        # SAC_memoryhSAC1024le7 = method_memory()
+   
 
 
         np.save('./compare_4.14_data/SAC_memoryhSAC256le5.npy', SAC_memoryhSAC256le5.capacity)
@@ -522,45 +420,12 @@ def main():
         np.save('./compare_4.14_data/SAC_memoryhSAC512le5.npy', SAC_memoryhSAC512le5.capacity)
         np.save('./compare_4.14_data/SAC_memoryhSAC512le6.npy', SAC_memoryhSAC512le6.capacity)
         np.save('./compare_4.14_data/SAC_memoryhSAC512le7.npy', SAC_memoryhSAC512le7.capacity)
-        np.save('./compare_4.14_data/SAC_memoryhSAC1024le5.npy', SAC_memoryhSAC1024le5.capacity)
-        np.save('./compare_4.14_data/SAC_memoryhSAC1024le6.npy', SAC_memoryhSAC1024le6.capacity)
-        np.save('./compare_4.14_data/SAC_memoryhSAC1024le7.npy', SAC_memoryhSAC1024le7.capacity)
+
 
         plot_CDF_4_14(SAC_memoryhSAC256le5.capacity[:i + 1],SAC_memoryhSAC256le6.capacity[:i + 1],SAC_memoryhSAC256le7.capacity[:i + 1],SAC_memoryhSAC512le5.capacity[:i + 1],SAC_memoryhSAC512le6.capacity[:i + 1],SAC_memoryhSAC512le7.capacity[:i + 1],SAC_memoryhSAC1024le5.capacity[:i + 1],SAC_memoryhSAC1024le6.capacity[:i + 1],SAC_memoryhSAC1024le7.capacity[:i + 1],
                       'Cumulative Distribution Function', args.CDF)
         print(666)
-        # plt.close()
-        # s_SACth1ta1489_no_prob = s_SACth1ta1489_no_index / 3000
-        # s_SACth1tafu1_no_prob = s_SACth1tafu1_no_index / 3000
-        # s_SACth2_no_prob = s_SACth2_no_index / 3000
-        # s_SACth3_no_prob = s_SACth3_no_index / 3000
-        # s_SACth4_no_prob = s_SACth4_no_index / 3000
-        # s_SACth5_no_prob = s_SACth5_no_index / 3000
-        #
-        # s_SACth1ta1489_prob = 1 - s_SACth1ta1489_no_index / 3000
-        # s_SACth1tafu1_prob = 1 - s_SACth1tafu1_no_index / 3000
-        # s_SACth2_prob = 1 - s_SACth2_no_index / 3000
-        # s_SACth3_prob = 1 - s_SACth3_no_index / 3000
-        # s_SACth4_prob = 1 - s_SACth4_no_index / 3000
-        # s_SACth5_prob = 1 - s_SACth5_no_index / 3000
-        # x = ['Rth0.1ta1489', 'Rth0.1tafu1','Rth0.2', 'Rth0.3', 'Rth0.4', 'Rth0.5']
-        #
-        # plt.bar(x, height=[s_SACth1ta1489_prob,s_SACth1tafu1_prob, s_SACth2_prob, s_SACth3_prob, s_SACth4_prob, s_SACth5_prob],
-        #         label='meet Rth condition')
-        # plt.bar(x, height=[s_SACth1ta1489_no_prob,s_SACth1tafu1_no_prob,s_SACth2_no_prob, s_SACth3_no_prob, s_SACth4_no_prob, s_SACth5_no_prob],
-        #         bottom=[s_SACth1ta1489_prob,s_SACth1tafu1_prob, s_SACth2_prob, s_SACth3_prob, s_SACth4_prob, s_SACth5_prob],
-        #         label='not meet Rth condition')
-        # plt.legend()
-        # plt.xlabel('conditions')  # 添加横轴标签\n",
-        # plt.ylabel('probability')  # 添加纵轴标签\n",
-        # plt.savefig('prob.png')
-        # plt.show()
-        # # plot_CDF_4_14(SAC_memorySACmin.capacity[:i + 1], SAC_memorySACth1.capacity[:i + 1],
-        # #               SAC_memorySACth2.capacity[:i + 1], SAC_memorySACth3.capacity[:i + 1],
-        # #               SAC_memorySACth4.capacity[:i + 1], SAC_memorySACth5.capacity[:i + 1],
-        # #               'Cumulative Distribution Function', args.CDF)
-        #
-        #
+  
 
 
 if __name__ == '__main__':
