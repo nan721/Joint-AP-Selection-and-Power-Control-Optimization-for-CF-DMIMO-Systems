@@ -1,12 +1,7 @@
-# 训练函数，如要训练神经网络即直接运行此函数。目前已经修改为RRH的位置不发生变动。
-# 该函数可以直接调整DDQN的学习率、总学习轮数、记忆池大小、学习batch_size等参数。
-
-# 本程序由train改编而来，用于重新设置reward
-# 再给一个用户增加第一个分布式基站时，获得额外增益
+# 训练函数，如要训练神经网络即直接运行此函数。AP位置不发生变动。
+# 该函数可以直接调整HSAC的学习率、总学习轮数、记忆池大小、学习batch_size等参数。
 # 最后一步不满足每个用户都有至少一个分布式基站时，给予负向rewawrd
-
-# 2022.1.7
-# 小规模情况，天线位置不变，用户位置变化，控制在10000轮之内，缩小记忆池
+# 天线位置不变，用户位置变化
 
 import os
 
@@ -17,7 +12,7 @@ import time
 from copy import deepcopy
 import numpy as np
 import argparse
-from DDQN import SAC
+from HSAC import SAC_hybrid
 from Rician_environment import generate_position_matrix, get_distance_matrix
 from state import State
 from utils import plot_learning_curve, create_directory
@@ -31,7 +26,7 @@ parser = argparse.ArgumentParser()
 # parser.add_argument('--max_episodes', type=int, default=200000)
 parser.add_argument('--max_episodes', type=int, default=10000)
 # parser.add_argument('--max_episodes', type=int, default=50000)
-parser.add_argument('--ckpt_dir', type=str, default='./checkpoints/DDQN/')
+parser.add_argument('--ckpt_dir', type=str, default='./checkpoints/HSAC/')
 parser.add_argument('--reward_path', type=str, default='./output_images/avg_reward')
 parser.add_argument('--epsilon_path', type=str, default='./output_images/epsilon')
 parser.add_argument('--avg_rewardture_path', type=str, default='./output_images/avg_rewardture')
@@ -65,13 +60,11 @@ def main():
     EP_STEPS = user * State.SERVICE_NUMBER
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device(
         "cpu")
-    # agent = DDQN(alpha=0.0003, user=user, rrh=rrh, stack=2, ckpt_dir=args.ckpt_dir, gamma=0.99, tau=0.005, epsilon=1.0,
-    #              eps_end=0.03, eps_dec=0.999998, max_size=4000, batch_size=32)
-    replay_buffer = buffer.ReplayBuffer(buffer_size)
-    agent = SAC(state_dim, out_c_dim, out_d_dim,  tau, gamma, device,args.ckpt_dir)
 
-    # agent = DDQN(alpha=0.0003, user=user, rrh=rrh, stack=2, ckpt_dir=args.ckpt_dir, gamma=0.99, tau=0.005, epsilon=1.0,
-    #              eps_end=0.02, eps_dec=0.99999, max_size=1000, batch_size=32)
+    replay_buffer = buffer.ReplayBuffer(buffer_size)
+    agent = SAC_hybrid(state_dim, out_c_dim, out_d_dim,  tau, gamma, device,args.ckpt_dir)
+
+    
     create_directory(args.ckpt_dir, sub_dirs=['Q_eval', 'Q_target'])
     create_directory(args.reward_path, sub_dirs=[''])
     create_directory(args.epsilon_path, sub_dirs=[''])
@@ -106,10 +99,6 @@ def main():
         s = State(selection_pairs, distance_matrix, selection_index,R,power_matrix,power_10,action_c_single)
         for i in range(EP_STEPS):
             s.largescale_matrix = norm(s.largescale_matrix).reshape(1, user * rrh)
-            # embeds = torch.nn.Embedding(30, 2)
-            # uuu= embeds(torch.tensor(s.selection_pairs, dtype=torch.long))
-            #
-
             observation = np.concatenate((s.selection_pairs.reshape(1,30),s.power_10.reshape(1,10), s.R.reshape(1, user),s.largescale_matrix), axis=1)
 
             USE  = deepcopy(observation)
@@ -132,12 +121,8 @@ def main():
             if np.asarray(tiaojian).all() == 0:
                 for index in range(user):
                     rewardtrue = rewardtrue - stepfun(R[index][0] - Rth)[0]
-
-
             else:
                 rewardtrue = R.sum()
-
-
 
             replay_buffer.add(observation, all_a, rewardtrue, observation_, done)
             if replay_buffer.size() > minimal_size:
