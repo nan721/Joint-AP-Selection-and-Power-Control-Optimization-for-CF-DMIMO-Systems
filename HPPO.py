@@ -64,7 +64,7 @@ class Critic(nn.Module):
         self.load_state_dict(torch.load(checkpoint_file))####将预训练的参数权重加载到新的模型之中
 
 
-class PPO_discrete(object):
+class PPO_hybrid(object):
     def __init__(
             self,
             state_dim,net_width,
