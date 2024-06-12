@@ -99,8 +99,8 @@ class SoftQNetwork(nn.Module):
         x = self.fc2(x)
         return x
 
-class SAC:
-    ''' 处理离散动作的SAC算法 '''
+class SAC_hybrid:
+    ''' 处理混合动作的HSAC算法 '''
     def __init__(self, state_dim, out_c_dim, out_d_dim,  tau, gamma, device,checkpoint_dir):
         # 策略网络
         self.actor = Policy(state_dim, out_c_dim, out_d_dim).to(device)
