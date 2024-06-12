@@ -1,19 +1,3 @@
-# 强化学习实验组。包含DDQN类，表征强化学习的智能体。
-# 首先，依赖完全随机的原则，生成多轮选择步骤，每一轮选择步骤的用户位置互不相同。
-# 在每一轮中，设置9步转换动作，并将每个动作及其4个shuffle、动作执行前的状态及其4个shuffle、动作执行后的状态及其4个shuffle，获得的奖励存入记忆池中。
-# 记忆池中存储的为state, action, reward, state_，并再存储是否是终止状态的指示符done。
-#
-# Double DQN，使用了两个完全一样的网络结构，用于进行网络软更新。
-# Eval网络为实时更新的网络，target网络为缓慢更新的网络，target的参数为原来的target网络与eval网络的加权平均。
-
-# 待存储结束后，开始学习阶段。
-# 学习在DDQN中的learn函数中实现，通过降低两个Q值之间的均方误差，来起到学习的效果。
-# 其中，第一个Q值定义为Q_target，其等于本状态的记忆池中的reward，加上乘上gamma后的、由target网络预测的执行最佳动作（最佳动作为state_输入Q_eval后的最大Q值的对应动作）后的state_的Q值；
-# 而第二个Q值定义为将state直接输入到Q_eval网络后得到的记忆池中action对应位置的Q值。
-# 学习结束后，执行软更新和EPSILON的衰减。直至最后基本上完全依靠神经网络判断，不再使用随机策略。
-
-# 本程序为核心程序，依赖即将在后面提到的记忆池程序buffer.py。
-
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal
 import torch
