@@ -1,12 +1,8 @@
-# 训练函数，如要训练神经网络即直接运行此函数。目前已经修改为RRH的位置不发生变动。
-# 该函数可以直接调整DDQN的学习率、总学习轮数、记忆池大小、学习batch_size等参数。
+# 训练函数，如要训练神经网络即直接运行此函数。AP位置不发生变动。
+# 该函数可以直接调整HPPO的学习率、总学习轮数、记忆池大小、学习batch_size等参数。
 
-# 本程序由train改编而来，用于重新设置reward
-# 再给一个用户增加第一个分布式基站时，获得额外增益
 # 最后一步不满足每个用户都有至少一个分布式基站时，给予负向rewawrd
-
-# 2022.1.7
-# 小规模情况，天线位置不变，用户位置变化，控制在10000轮之内，缩小记忆池
+# 天线位置不变，用户位置变化，控制在10000轮之内，缩小记忆池
 
 import os
 
@@ -17,7 +13,7 @@ import time
 from copy import deepcopy
 import numpy as np
 import argparse
-from DDQN import PPO_discrete
+from HPPO import PPO_hybrid
 from Rician_environment import generate_position_matrix, get_distance_matrix
 from state import State
 from utils import plot_learning_curve, create_directory
@@ -73,8 +69,7 @@ def main():
     EP_STEPS = user * State.SERVICE_NUMBER
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device(
         "cpu")
-    # agent = DDQN(alpha=0.0003, user=user, rrh=rrh, stack=2, ckpt_dir=args.ckpt_dir, gamma=0.99, tau=0.005, epsilon=1.0,
-    #              eps_end=0.03, eps_dec=0.999998, max_size=4000, batch_size=32)
+
     replay_buffer = buffer.ReplayBuffer(buffer_size)
     lambd = 0.95
     lr = 1e-5
@@ -82,11 +77,10 @@ def main():
     K_epochs = 10
     batch_size = 32
     l2_reg = 1e-4
-    agent = PPO_discrete(state_dim, net_width, action_dim, device,args.ckpt_dir, gamma, lambd, lr,
+    agent = PPO_hybrid(state_dim, net_width, action_dim, device,args.ckpt_dir, gamma, lambd, lr,
                 clip_rate, K_epochs, batch_size,l2_reg,entropy_coef=1e-3,adv_normalization=False,
             entropy_coef_decay=0.99)
-    # agent = DDQN(alpha=0.0003, user=user, rrh=rrh, stack=2, ckpt_dir=args.ckpt_dir, gamma=0.99, tau=0.005, epsilon=1.0,
-    #              eps_end=0.02, eps_dec=0.99999, max_size=1000, batch_size=32)
+    
     create_directory(args.ckpt_dir, sub_dirs=['Q_eval', 'Q_target'])
     create_directory(args.R_path, sub_dirs=[''])
     create_directory(args.avg_rewardture_path, sub_dirs=[''])
@@ -173,16 +167,6 @@ def main():
                 transition_dict = {'states': b_s, 'actions': b_a, 'pi_a':pi_a,'log_prob_c':log_prob_c,'next_states': b_ns, 'rewards': b_r, 'dones': b_d}
 
                 agent.train(transition_dict)
-                # actor_loss = actor_loss
-                # critic_1_loss = critic1_loss
-                #
-                # actor_loss_list.append(actor_loss)
-                # critic_1_loss_list.append(critic_1_loss)
-                #
-                #
-                # alpha_loss= alpha_loss
-                # alpha_loss_list.append(alpha_loss)
-
 
 
             if GRAPH_OUTPUT: s.graphic(RRH_matrix, USER_matrix, s.get_expect_capacity(loop=100).sum())
